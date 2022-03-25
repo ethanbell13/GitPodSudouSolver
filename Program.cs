@@ -8,6 +8,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            var h = "";
             var input = new char[9][]
             {
                 new char[9] {' ', ' ', ' ', ' ', ' ', ' ', ' ', '2', ' ' },
