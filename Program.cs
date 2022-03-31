@@ -49,7 +49,6 @@ namespace ConsoleApp1
             //         row += x.sudokuArrays[i][j] + " ";
             //     Console.WriteLine(row);
             // }
-            var y = 99;
         }
     }
 }
@@ -61,6 +60,8 @@ namespace SudokuLibrary
         Dictionary<string, int[]> arrayLinker;
         Dictionary<string, string> notes;
         bool valueAdded;
+        bool initialized = false;
+        string[][] numOpenSpots;
         static void ArgumentValidator(char[][] board)
         {
             if (board.GetLength(0) != 9)
@@ -86,8 +87,12 @@ namespace SudokuLibrary
             sudokuArrays = new char[27][];
             arrayLinker = new Dictionary<string, int[]>();
             notes = new Dictionary<string, string>();
+            numOpenSpots = new string[27][];
             for (int i = 0; i < 27; i++)
+            {
                 sudokuArrays[i] = new char[9];
+                numOpenSpots[i] = new string[9];
+            }
             for (int i = 0; i < 9; i++)
             {
                 for (int j = 0; j < 9; j++)
@@ -127,9 +132,9 @@ namespace SudokuLibrary
             sudokuArrays[array][pos] = num;
             sudokuArrays[coPositions[0]][coPositions[1]] = num;
             sudokuArrays[coPositions[2]][coPositions[3]] = num;
-	    notes.Remove(array.ToString() + pos.ToString());
+	        notes.Remove(array.ToString() + pos.ToString());
             notes.Remove(coPositions[0].ToString() + coPositions[1].ToString());
-	    notes.Remove(coPositions[2].ToString() + coPositions[3].ToString());
+	        notes.Remove(coPositions[2].ToString() + coPositions[3].ToString());
             EditNotes(num, array);
             EditNotes(num, coPositions[0]);
             EditNotes(num, coPositions[2]);
@@ -140,7 +145,7 @@ namespace SudokuLibrary
             for (int i = 0; i < 9; i++)
             {
                 var coPositions = arrayLinker[array.ToString() + i.ToString()];
-		var str = array.ToString() + i.ToString();
+		        var str = array.ToString() + i.ToString();
                 if (exceptions != null && exceptions.Contains(str))
                     continue;
                 else if (sudokuArrays[array][i] == '\0' && notes[str].Contains(num))
@@ -156,8 +161,8 @@ namespace SudokuLibrary
                     else
                     {
                         notes[str] = note;
-			notes[coPositions[0].ToString() + coPositions[1].ToString()] = note;
-			notes[coPositions[2].ToString() + coPositions[3].ToString()] = note;
+			            notes[coPositions[0].ToString() + coPositions[1].ToString()] = note;
+			            notes[coPositions[2].ToString() + coPositions[3].ToString()] = note;
                         valueAdded = true;
                     }
                 }
@@ -176,7 +181,28 @@ namespace SudokuLibrary
                 }
             }
         }
-        void ScanByNumber(char num)
+        void OnlyCellForNum(char num, int array)
+        {
+            var count = 0;
+            int pos = 0;
+            for(int i = 0; i < 9; i++)
+            {
+                if(sudokuArrays[array][i] != '\0')
+                {
+                    var str = array.ToString() + i.ToString();
+                    var coPositions = arrayLinker[str];
+                    if(!notes[str].Contains(num))
+                    {
+                        count++;
+                        pos = i;
+                    }
+                }
+                if(count > 1)
+                    return;
+            }
+            AddNum(num, array, pos);
+        }
+        void ScanByBox(char num)
         {
             var array = 0;
             for (int i = 18; i < 27; i++)
@@ -288,11 +314,12 @@ namespace SudokuLibrary
             InitializeFields();
             InputBoard(board);
             BoardValidator(sudokuArrays);
+            initialized = true;
             while (valueAdded == true)
             {
                 valueAdded = false;
                 for (int i = 1; i < 10; i++)
-                    ScanByNumber(Convert.ToChar(i + '0'));
+                    ScanByBox(Convert.ToChar(i + '0'));
                 if (valueAdded == false)
                 {
                     for (int i = 0; i < 27; i++)
